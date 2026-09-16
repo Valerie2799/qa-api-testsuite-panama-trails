@@ -54,7 +54,7 @@ def get_weather_forecast(context, base_weather_url):
         "longitude": context["lon"],
         "current": "temperature_2m,relative_humidity_2m",
     }
-    context["response"] = requests.get(base_weather_url, params=params, timeout=5)
+    context["response"] = requests.get(base_weather_url, params=params, timeout=15)
 
 
 @when("consulto el servicio de elevación de Open-Meteo")
@@ -63,7 +63,7 @@ def get_elevation(context, base_elevation_url):
         "latitude": context["lat"],
         "longitude": context["lon"],
     }
-    context["response"] = requests.get(base_elevation_url, params=params, timeout=5)
+    context["response"] = requests.get(base_elevation_url, params=params, timeout=15)
 
 
 # -----------------------------------------------------------------------------

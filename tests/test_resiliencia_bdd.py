@@ -71,7 +71,7 @@ def execute_weather_call(res_context, base_weather_url):
     params = res_context.get("params", {})
     headers = res_context.get("headers", {})
     res_context["response"] = requests.get(
-        base_weather_url, params=params, headers=headers, timeout=5
+        base_weather_url, params=params, headers=headers, timeout=15
     )
 
 
@@ -80,7 +80,7 @@ def execute_conditional_call(res_context, base_weather_url):
     params = res_context.get("params", {})
     headers = res_context.get("headers", {})
     res_context["response"] = requests.get(
-        base_weather_url, params=params, headers=headers, timeout=5
+        base_weather_url, params=params, headers=headers, timeout=15
     )
 
 
