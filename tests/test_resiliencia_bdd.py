@@ -1,5 +1,6 @@
 import pytest
 import requests
+
 # pyrefly: ignore [missing-import]
 from pytest_bdd import given, when, then, parsers, scenarios
 
@@ -15,6 +16,7 @@ def res_context():
 # -----------------------------------------------------------------------------
 # DADO (GIVEN)
 # -----------------------------------------------------------------------------
+
 
 @given(
     parsers.parse(
@@ -61,6 +63,7 @@ def set_conditional_header(res_context, header_name):
 # CUANDO (WHEN)
 # -----------------------------------------------------------------------------
 
+
 @when("consulto el pronóstico del clima en Open-Meteo")
 @when("consulto el pronóstico del clima con parámetros de texto")
 @when("consulto el pronóstico del clima con parámetros incompletos")
@@ -85,21 +88,22 @@ def execute_conditional_call(res_context, base_weather_url):
 # ENTONCES (THEN)
 # -----------------------------------------------------------------------------
 
+
 @then(parsers.parse("la respuesta debe tener un código de estado {status_code:d}"))
 def check_status_code(res_context, status_code):
     response = res_context["response"]
-    assert response.status_code == status_code, (
-        f"Código de estado esperado: {status_code}, recibido: {response.status_code}. Detalle: {response.text}"
-    )
+    assert (
+        response.status_code == status_code
+    ), f"Código de estado esperado: {status_code}, recibido: {response.status_code}. Detalle: {response.text}"
 
 
 @then("la respuesta debe indicar un error controlado con motivo descriptivo")
 def check_error_details(res_context):
     data = res_context["response"].json()
     assert data.get("error") is True, f"Se esperaba error=True, pero se recibió: {data}"
-    assert "reason" in data and len(data["reason"]) > 0, (
-        "Se esperaba un motivo 'reason' descriptivo en el JSON de respuesta"
-    )
+    assert (
+        "reason" in data and len(data["reason"]) > 0
+    ), "Se esperaba un motivo 'reason' descriptivo en el JSON de respuesta"
 
 
 @then(
@@ -108,6 +112,6 @@ def check_error_details(res_context):
 def verify_no_412_reason(res_context):
     response = res_context["response"]
     # Open-Meteo procesa la solicitud como 200 OK e ignora If-Match / If-Unmodified-Since
-    assert response.status_code == 200, (
-        f"Se esperaba 200 OK ante encabezado condicional, pero se obtuvo {response.status_code}"
-    )
+    assert (
+        response.status_code == 200
+    ), f"Se esperaba 200 OK ante encabezado condicional, pero se obtuvo {response.status_code}"

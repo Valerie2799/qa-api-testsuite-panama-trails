@@ -1,5 +1,6 @@
 import pytest
 import requests
+
 # pyrefly: ignore [missing-import]
 from pytest_bdd import given, when, then, parsers, scenarios
 
@@ -12,6 +13,7 @@ MAX_SLA_SECONDS = 2.0
 # -----------------------------------------------------------------------------
 # DADO (GIVEN)
 # -----------------------------------------------------------------------------
+
 
 @pytest.fixture
 def context():
@@ -44,6 +46,7 @@ def set_invalid_coordinates(context, latitud, longitud):
 # CUANDO (WHEN)
 # -----------------------------------------------------------------------------
 
+
 @when("consulto el pronóstico del clima en Open-Meteo")
 def get_weather_forecast(context, base_weather_url):
     params = {
@@ -67,18 +70,21 @@ def get_elevation(context, base_elevation_url):
 # ENTONCES (THEN)
 # -----------------------------------------------------------------------------
 
+
 @then(parsers.parse("la respuesta debe tener un código de estado {status_code:d}"))
 def check_status_code(context, status_code):
     response = context["response"]
-    assert response.status_code == status_code, (
-        f"Código de estado esperado: {status_code}, recibido: {response.status_code}. Detalle: {response.text}"
-    )
+    assert (
+        response.status_code == status_code
+    ), f"Código de estado esperado: {status_code}, recibido: {response.status_code}. Detalle: {response.text}"
 
 
 @then("el tiempo de respuesta debe ser menor a 2.0 segundos")
 def check_response_time(context):
     elapsed = context["response"].elapsed.total_seconds()
-    assert elapsed < MAX_SLA_SECONDS, f"El tiempo de respuesta fue de {elapsed}s (límite {MAX_SLA_SECONDS}s)"
+    assert (
+        elapsed < MAX_SLA_SECONDS
+    ), f"El tiempo de respuesta fue de {elapsed}s (límite {MAX_SLA_SECONDS}s)"
 
 
 @then("los datos deben incluir la temperatura actual y humedad relativa")
@@ -100,15 +106,23 @@ def check_elevation_range(context, elevacion_min, elevacion_max):
     min_val = float(elevacion_min)
     max_val = float(elevacion_max)
     data = context["response"].json()
-    assert "elevation" in data, "No se encontró el campo 'elevation' en la respuesta JSON"
-    elev_val = data["elevation"][0] if isinstance(data["elevation"], list) else data["elevation"]
-    assert min_val <= elev_val <= max_val, (
-        f"Elevación {elev_val} msnm fuera del rango esperado [{min_val}, {max_val}]"
+    assert (
+        "elevation" in data
+    ), "No se encontró el campo 'elevation' en la respuesta JSON"
+    elev_val = (
+        data["elevation"][0]
+        if isinstance(data["elevation"], list)
+        else data["elevation"]
     )
+    assert (
+        min_val <= elev_val <= max_val
+    ), f"Elevación {elev_val} msnm fuera del rango esperado [{min_val}, {max_val}]"
 
 
 @then("la respuesta debe indicar un error controlado con motivo descriptivo")
 def check_error_payload(context):
     data = context["response"].json()
     assert data.get("error") is True, f"Se esperaba error=True, recibido: {data}"
-    assert "reason" in data and len(data["reason"]) > 0, "Se esperaba un motivo 'reason' descriptivo"
+    assert (
+        "reason" in data and len(data["reason"]) > 0
+    ), "Se esperaba un motivo 'reason' descriptivo"

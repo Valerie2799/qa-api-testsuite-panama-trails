@@ -22,7 +22,11 @@ def pytest_collection_modifyitems(items):
         if "posible_bug" in item.keywords:
             item.add_marker(
                 pytest.mark.xfail(
-                    reason="Posible bug: Discrepancia entre la altura máxima esperada (~950 msnm) y el valor devuelto por Open-Meteo. Pendiente revisión con investigaciones de campo."
+                    reason=(
+                        "Posible bug: Discrepancia entre la altura máxima esperada "
+                        "(~950 msnm) y el valor devuelto por Open-Meteo. Pendiente "
+                        "revisión con investigaciones de campo."
+                    )
                 )
             )
 
