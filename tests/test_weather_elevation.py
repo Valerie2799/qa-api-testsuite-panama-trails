@@ -27,7 +27,7 @@ class TestPanamaTrailsWeatherAndElevation:
             "current": "temperature_2m,relative_humidity_2m",
         }
 
-        response = requests.get(base_weather_url, params=params, timeout=15)
+        response = requests.get(base_weather_url, params=params, timeout=30)
 
         # 1. Validación de código de estado
         assert (
@@ -75,7 +75,7 @@ class TestPanamaTrailsWeatherAndElevation:
         """Verifica que el endpoint de elevación devuelva la altitud esperada."""
         params = {"latitude": lat, "longitude": lon}
 
-        response = requests.get(base_elevation_url, params=params, timeout=15)
+        response = requests.get(base_elevation_url, params=params, timeout=30)
 
         assert response.status_code == 200
         assert response.elapsed.total_seconds() < MAX_RESPONSE_TIME_SECONDS
@@ -113,7 +113,7 @@ class TestPanamaTrailsWeatherAndElevation:
         """Verifica que la API retorne HTTP 400 Bad Request ante parámetros no válidos."""
         params = {"latitude": invalid_lat, "longitude": invalid_lon}
 
-        response = requests.get(base_weather_url, params=params, timeout=15)
+        response = requests.get(base_weather_url, params=params, timeout=30)
 
         assert (
             response.status_code == 400
@@ -129,7 +129,7 @@ class TestPanamaTrailsWeatherAndElevation:
     def test_resilience_missing_mandatory_params(self, base_weather_url):
         """Verifica que omitir un parámetro mandatorio (ej. latitud sin longitud) retorne HTTP 400 Bad Request."""
         params = {"latitude": 8.8080}
-        response = requests.get(base_weather_url, params=params, timeout=15)
+        response = requests.get(base_weather_url, params=params, timeout=30)
         assert response.status_code == 400
         data = response.json()
         assert data.get("error") is True
@@ -147,6 +147,6 @@ class TestPanamaTrailsWeatherAndElevation:
         }
         headers = {"If-Match": '"etag-inexistente-123"'}
         response = requests.get(
-            base_weather_url, params=params, headers=headers, timeout=15
+            base_weather_url, params=params, headers=headers, timeout=30
         )
         assert response.status_code == 200
