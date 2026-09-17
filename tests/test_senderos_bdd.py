@@ -1,4 +1,3 @@
-import pytest
 import requests
 
 # pyrefly: ignore [missing-import]
@@ -15,12 +14,6 @@ MAX_SLA_SECONDS = 2.0
 # -----------------------------------------------------------------------------
 
 
-@pytest.fixture
-def context():
-    """Contenedor de estado compartido entre pasos de BDD."""
-    return {}
-
-
 @given(
     parsers.parse(
         'que elijo el sendero "{sendero}" con coordenadas latitud {latitud:f} y longitud {longitud:f}'
@@ -30,31 +23,16 @@ def set_trail_coordinates(context, sendero, latitud, longitud):
     context["trail_name"] = sendero
     context["lat"] = latitud
     context["lon"] = longitud
-
-
-@given(
-    parsers.parse(
-        "que configuro una coordenada inválida con latitud {latitud:f} y longitud {longitud:f}"
-    )
-)
-def set_invalid_coordinates(context, latitud, longitud):
-    context["lat"] = latitud
-    context["lon"] = longitud
+    context["params"] = {
+        "latitude": latitud,
+        "longitude": longitud,
+        "current": "temperature_2m,relative_humidity_2m",
+    }
 
 
 # -----------------------------------------------------------------------------
 # CUANDO (WHEN)
 # -----------------------------------------------------------------------------
-
-
-@when("consulto el pronóstico del clima en Open-Meteo")
-def get_weather_forecast(context, base_weather_url):
-    params = {
-        "latitude": context["lat"],
-        "longitude": context["lon"],
-        "current": "temperature_2m,relative_humidity_2m",
-    }
-    context["response"] = requests.get(base_weather_url, params=params, timeout=30)
 
 
 @when("consulto el servicio de elevación de Open-Meteo")
@@ -69,14 +47,6 @@ def get_elevation(context, base_elevation_url):
 # -----------------------------------------------------------------------------
 # ENTONCES (THEN)
 # -----------------------------------------------------------------------------
-
-
-@then(parsers.parse("la respuesta debe tener un código de estado {status_code:d}"))
-def check_status_code(context, status_code):
-    response = context["response"]
-    assert (
-        response.status_code == status_code
-    ), f"Código de estado esperado: {status_code}, recibido: {response.status_code}. Detalle: {response.text}"
 
 
 @then("el tiempo de respuesta debe ser menor a 2.0 segundos")
@@ -117,12 +87,3 @@ def check_elevation_range(context, elevacion_min, elevacion_max):
     assert (
         min_val <= elev_val <= max_val
     ), f"Elevación {elev_val} msnm fuera del rango esperado [{min_val}, {max_val}]"
-
-
-@then("la respuesta debe indicar un error controlado con motivo descriptivo")
-def check_error_payload(context):
-    data = context["response"].json()
-    assert data.get("error") is True, f"Se esperaba error=True, recibido: {data}"
-    assert (
-        "reason" in data and len(data["reason"]) > 0
-    ), "Se esperaba un motivo 'reason' descriptivo"

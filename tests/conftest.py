@@ -1,4 +1,8 @@
 import pytest
+import requests
+
+# pyrefly: ignore [missing-import]
+from pytest_bdd import when, then, parsers
 
 
 def pytest_configure(config):
@@ -69,3 +73,31 @@ def panama_trails():
             "expected_elevation_max": 900,
         },
     ]
+
+
+# -----------------------------------------------------------------------------
+# STEP DEFINITIONS COMPARTIDAS ENTRE senderos_panama.feature Y resiliencia_api.feature
+# -----------------------------------------------------------------------------
+
+
+@pytest.fixture
+def context():
+    """Contenedor de estado compartido entre pasos de BDD."""
+    return {}
+
+
+@when("consulto el pronóstico del clima en Open-Meteo")
+def request_weather_forecast(context, base_weather_url):
+    params = context.get("params", {})
+    headers = context.get("headers", {})
+    context["response"] = requests.get(
+        base_weather_url, params=params, headers=headers, timeout=30
+    )
+
+
+@then(parsers.parse("la respuesta debe tener un código de estado {status_code:d}"))
+def check_status_code(context, status_code):
+    response = context["response"]
+    assert (
+        response.status_code == status_code
+    ), f"Código de estado esperado: {status_code}, recibido: {response.status_code}. Detalle: {response.text}"
