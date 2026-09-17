@@ -86,3 +86,9 @@ Open-Meteo es una API pública y gratuita, y sus rangos de IP compartidos con mi
 * Se configuran reintentos automáticos limitados a errores de red transitorios (`pytest-rerunfailures`, solo para `ReadTimeout`/`ConnectionError`, nunca para fallos de aserción).
 
 Si el pipeline falla en CI pero la suite pasa en local, es indicativo de este límite externo, no de una regresión.
+
+---
+
+## 📋 Declaración de Diligencia
+
+En el desarrollo de este proyecto se utilizó Claude (Anthropic) como asistente en la redacción de step definitions BDD, la configuración de CI/CD y la resolución de fallos transitorios de red. No se empleó información sensible; el proyecto consume únicamente APIs públicas. Todo el código generado fue sometido a revisión mediante ejecución de pruebas y code review antes de su incorporación. La autora asume responsabilidad total por el resultado final, su exactitud y su presentación.
