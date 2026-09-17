@@ -25,8 +25,8 @@ Característica: Pruebas de resiliencia y límites de protocolo en la API de Ope
 
     Ejemplos:
       | latitud_str | longitud_str | motivo                     |
-      | panama_city |        -79.5 | Texto en lugar de latitud  |
-      |      8.8080 | invalido     | Texto en lugar de longitud |
+      | panama_city | -79.5        | Texto en lugar de latitud  |
+      | 8.8080      | invalido     | Texto en lugar de longitud |
 
   Escenario: Manejo de petición con parámetro obligatorio faltante (latitud sin longitud)
     Dado que configuro una petición con solo el parámetro latitud "8.8080" sin longitud

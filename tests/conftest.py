@@ -1,8 +1,12 @@
+import time
+
 import pytest
 import requests
 
 # pyrefly: ignore [missing-import]
 from pytest_bdd import when, then, parsers
+
+REQUEST_THROTTLE_SECONDS = 1.5
 
 
 def pytest_configure(config):
@@ -45,6 +49,17 @@ def base_weather_url():
 def base_elevation_url():
     """URL base para el endpoint de elevación de Open-Meteo."""
     return "https://api.open-meteo.com/v1/elevation"
+
+
+@pytest.fixture(autouse=True)
+def throttle_open_meteo_requests():
+    """Espacia las peticiones a la API pública para evitar el rate-limiting
+
+    que Open-Meteo aplica a rangos de IP compartidos como los runners de
+    GitHub Actions cuando reciben rafagas de solicitudes consecutivas.
+    """
+    yield
+    time.sleep(REQUEST_THROTTLE_SECONDS)
 
 
 @pytest.fixture(scope="session")

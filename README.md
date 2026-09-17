@@ -79,3 +79,10 @@ pytest tests/ -v
 
 ## ⚙️ Integración Continua (CI/CD)
 El pipeline en `.github/workflows/test.yml` se ejecuta automáticamente ante cada `push` o `pull_request` a las ramas `main` o `master`, instalando las dependencias y validando tanto los escenarios BDD como las pruebas unitarias.
+
+### ⚠️ Limitación conocida: rate-limiting de la API pública gratuita
+Open-Meteo es una API pública y gratuita, y sus rangos de IP compartidos con miles de pipelines de GitHub Actions en todo el mundo pueden recibir *throttling* cuando reciben ráfagas de solicitudes. Esto puede provocar `ReadTimeout` intermitentes en el runner de CI que **no reflejan un defecto en la aplicación bajo prueba ni en la suite**. Para mitigarlo:
+* Se espacian las solicitudes con una breve pausa entre pruebas (`throttle_open_meteo_requests` en `conftest.py`).
+* Se configuran reintentos automáticos limitados a errores de red transitorios (`pytest-rerunfailures`, solo para `ReadTimeout`/`ConnectionError`, nunca para fallos de aserción).
+
+Si el pipeline falla en CI pero la suite pasa en local, es indicativo de este límite externo, no de una regresión.

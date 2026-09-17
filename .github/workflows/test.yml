@@ -29,4 +29,4 @@ jobs:
 
       - name: Run API Tests with Pytest
         run: |
-          pytest tests/ -v --durations=10 --reruns 2 --reruns-delay 5 --only-rerun "ReadTimeout|ConnectionError"
+          pytest tests/ -v --durations=10 --reruns 3 --reruns-delay 10 --only-rerun "ReadTimeout|ConnectionError"
