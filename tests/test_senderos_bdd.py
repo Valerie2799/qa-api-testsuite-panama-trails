@@ -3,39 +3,39 @@ import requests
 # pyrefly: ignore [missing-import]
 from pytest_bdd import given, when, then, parsers, scenarios
 
-# Cargar todos los escenarios definidos en el archivo .feature
+# Load all scenarios defined in the .feature file
 scenarios("../features/senderos_panama.feature")
 
 MAX_SLA_SECONDS = 2.0
 
 
 # -----------------------------------------------------------------------------
-# DADO (GIVEN)
+# GIVEN
 # -----------------------------------------------------------------------------
 
 
 @given(
     parsers.parse(
-        'que elijo el sendero "{sendero}" con coordenadas latitud {latitud:f} y longitud {longitud:f}'
+        'I choose the trail "{trail}" with coordinates latitude {latitude:f} and longitude {longitude:f}'
     )
 )
-def set_trail_coordinates(context, sendero, latitud, longitud):
-    context["trail_name"] = sendero
-    context["lat"] = latitud
-    context["lon"] = longitud
+def set_trail_coordinates(context, trail, latitude, longitude):
+    context["trail_name"] = trail
+    context["lat"] = latitude
+    context["lon"] = longitude
     context["params"] = {
-        "latitude": latitud,
-        "longitude": longitud,
+        "latitude": latitude,
+        "longitude": longitude,
         "current": "temperature_2m,relative_humidity_2m",
     }
 
 
 # -----------------------------------------------------------------------------
-# CUANDO (WHEN)
+# WHEN
 # -----------------------------------------------------------------------------
 
 
-@when("consulto el servicio de elevación de Open-Meteo")
+@when("I query the Open-Meteo elevation service")
 def get_elevation(context, base_elevation_url):
     params = {
         "latitude": context["lat"],
@@ -45,40 +45,40 @@ def get_elevation(context, base_elevation_url):
 
 
 # -----------------------------------------------------------------------------
-# ENTONCES (THEN)
+# THEN
 # -----------------------------------------------------------------------------
 
 
-@then("el tiempo de respuesta debe ser menor a 2.0 segundos")
+@then("the response time should be less than 2.0 seconds")
 def check_response_time(context):
     elapsed = context["response"].elapsed.total_seconds()
     assert (
         elapsed < MAX_SLA_SECONDS
-    ), f"El tiempo de respuesta fue de {elapsed}s (límite {MAX_SLA_SECONDS}s)"
+    ), f"Response time was {elapsed}s (limit {MAX_SLA_SECONDS}s)"
 
 
-@then("los datos deben incluir la temperatura actual y humedad relativa")
+@then("the data should include the current temperature and relative humidity")
 def check_weather_data(context):
     data = context["response"].json()
-    assert "current" in data, "No se encontró el objeto 'current' en la respuesta JSON"
+    assert "current" in data, "The 'current' object was not found in the JSON response"
     current = data["current"]
-    assert "temperature_2m" in current, "Falta la métrica 'temperature_2m'"
-    assert "relative_humidity_2m" in current, "Falta la métrica 'relative_humidity_2m'"
+    assert "temperature_2m" in current, "Missing 'temperature_2m' metric"
+    assert "relative_humidity_2m" in current, "Missing 'relative_humidity_2m' metric"
     assert isinstance(current["temperature_2m"], (int, float))
 
 
 @then(
     parsers.parse(
-        "la elevación reportada debe estar dentro del rango de {elevacion_min} a {elevacion_max} msnm"
+        "the reported elevation should be within the range of {min_elevation} to {max_elevation} masl"
     )
 )
-def check_elevation_range(context, elevacion_min, elevacion_max):
-    min_val = float(elevacion_min)
-    max_val = float(elevacion_max)
+def check_elevation_range(context, min_elevation, max_elevation):
+    min_val = float(min_elevation)
+    max_val = float(max_elevation)
     data = context["response"].json()
     assert (
         "elevation" in data
-    ), "No se encontró el campo 'elevation' en la respuesta JSON"
+    ), "The 'elevation' field was not found in the JSON response"
     elev_val = (
         data["elevation"][0]
         if isinstance(data["elevation"], list)
@@ -86,4 +86,4 @@ def check_elevation_range(context, elevacion_min, elevacion_max):
     )
     assert (
         min_val <= elev_val <= max_val
-    ), f"Elevación {elev_val} msnm fuera del rango esperado [{min_val}, {max_val}]"
+    ), f"Elevation {elev_val} masl is outside the expected range [{min_val}, {max_val}]"

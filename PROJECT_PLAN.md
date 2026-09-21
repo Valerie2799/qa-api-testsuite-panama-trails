@@ -1,6 +1,8 @@
 # 📋 Plan de Proyecto: QA Test Suite - API Weather & Elevation (Senderos de Panamá)
 > **Documento de Planificación y Alcance:** Automatización de pruebas de API REST para microclima y elevación geográfica en rutas de hiking en Panamá.
 
+> **Nota:** Este proyecto fue ideado con fines de aprendizaje, durante el estudio del curso [AI Fluency Framework: Foundations](https://academy.claude.com/es/courses/ai-fluency-framework-foundations) de Claude Academy.
+
 ---
 
 ## 🎯 Visión General

@@ -10,30 +10,30 @@ REQUEST_THROTTLE_SECONDS = 1.5
 
 
 def pytest_configure(config):
-    """Registra marcadores personalizados del proyecto."""
+    """Registers the project's custom markers."""
     config.addinivalue_line(
         "markers",
-        "posible_bug: Casos con discrepancias de elevación reportadas frente a datos de terreno, en investigación.",
+        "possible_bug: Cases with elevation discrepancies reported against terrain data, under investigation.",
     )
     config.addinivalue_line(
         "markers",
-        "verificado: Casos con datos y respuestas verificadas frente a la API.",
+        "verified: Cases with data and responses verified against the API.",
     )
 
 
 def pytest_collection_modifyitems(items):
-    """Aplica xfail automáticamente a las pruebas marcadas con @posible_bug
+    """Automatically applies xfail to tests marked with @possible_bug
 
-    para mantener el pipeline verde mientras se investiga la discrepancia topográfica.
+    to keep the pipeline green while the topographic discrepancy is investigated.
     """
     for item in items:
-        if "posible_bug" in item.keywords:
+        if "possible_bug" in item.keywords:
             item.add_marker(
                 pytest.mark.xfail(
                     reason=(
-                        "Posible bug: Discrepancia entre la altura máxima esperada "
-                        "(~950 msnm) y el valor devuelto por Open-Meteo. Pendiente "
-                        "revisión con investigaciones de campo."
+                        "Possible bug: Discrepancy between the expected maximum height "
+                        "(~950 masl) and the value returned by Open-Meteo. Pending "
+                        "review with field surveys."
                     )
                 )
             )
@@ -41,22 +41,22 @@ def pytest_collection_modifyitems(items):
 
 @pytest.fixture(scope="session")
 def base_weather_url():
-    """URL base para el endpoint de pronóstico de Open-Meteo."""
+    """Base URL for the Open-Meteo forecast endpoint."""
     return "https://api.open-meteo.com/v1/forecast"
 
 
 @pytest.fixture(scope="session")
 def base_elevation_url():
-    """URL base para el endpoint de elevación de Open-Meteo."""
+    """Base URL for the Open-Meteo elevation endpoint."""
     return "https://api.open-meteo.com/v1/elevation"
 
 
 @pytest.fixture(autouse=True)
 def throttle_open_meteo_requests():
-    """Espacia las peticiones a la API pública para evitar el rate-limiting
+    """Spaces out requests to the public API to avoid the rate-limiting
 
-    que Open-Meteo aplica a rangos de IP compartidos como los runners de
-    GitHub Actions cuando reciben rafagas de solicitudes consecutivas.
+    that Open-Meteo applies to shared IP ranges such as GitHub Actions
+    runners when they receive bursts of consecutive requests.
     """
     yield
     time.sleep(REQUEST_THROTTLE_SECONDS)
@@ -64,7 +64,7 @@ def throttle_open_meteo_requests():
 
 @pytest.fixture(scope="session")
 def panama_trails():
-    """Datos geográficos y altitud de referencia para senderos de Panamá."""
+    """Geographic and reference elevation data for Panama trails."""
     return [
         {
             "name": "Volcán Barú (Chiriquí)",
@@ -91,17 +91,17 @@ def panama_trails():
 
 
 # -----------------------------------------------------------------------------
-# STEP DEFINITIONS COMPARTIDAS ENTRE senderos_panama.feature Y resiliencia_api.feature
+# STEP DEFINITIONS SHARED BETWEEN senderos_panama.feature AND resiliencia_api.feature
 # -----------------------------------------------------------------------------
 
 
 @pytest.fixture
 def context():
-    """Contenedor de estado compartido entre pasos de BDD."""
+    """Shared state container between BDD steps."""
     return {}
 
 
-@when("consulto el pronóstico del clima en Open-Meteo")
+@when("I query the weather forecast on Open-Meteo")
 def request_weather_forecast(context, base_weather_url):
     params = context.get("params", {})
     headers = context.get("headers", {})
@@ -110,9 +110,9 @@ def request_weather_forecast(context, base_weather_url):
     )
 
 
-@then(parsers.parse("la respuesta debe tener un código de estado {status_code:d}"))
+@then(parsers.parse("the response should have a {status_code:d} status code"))
 def check_status_code(context, status_code):
     response = context["response"]
     assert (
         response.status_code == status_code
-    ), f"Código de estado esperado: {status_code}, recibido: {response.status_code}. Detalle: {response.text}"
+    ), f"Expected status code: {status_code}, received: {response.status_code}. Detail: {response.text}"

@@ -5,10 +5,10 @@ MAX_RESPONSE_TIME_SECONDS = 2.0
 
 
 class TestPanamaTrailsWeatherAndElevation:
-    """Suite de pruebas para validar la API de Open-Meteo en senderos de Panamá."""
+    """Test suite to validate the Open-Meteo API on Panama trails."""
 
     # -------------------------------------------------------------------------
-    # 1. PRUEBAS POSITIVAS (HAPPY PATH - HTTP 200 OK)
+    # 1. POSITIVE TESTS (HAPPY PATH - HTTP 200 OK)
     # -------------------------------------------------------------------------
 
     @pytest.mark.parametrize(
@@ -20,7 +20,7 @@ class TestPanamaTrailsWeatherAndElevation:
         ],
     )
     def test_weather_forecast_happy_path(self, base_weather_url, trail_name, lat, lon):
-        """Verifica que el endpoint de pronóstico responda 200 OK en <2s con datos válidos."""
+        """Verifies that the forecast endpoint responds 200 OK in <2s with valid data."""
         params = {
             "latitude": lat,
             "longitude": lon,
@@ -29,22 +29,22 @@ class TestPanamaTrailsWeatherAndElevation:
 
         response = requests.get(base_weather_url, params=params, timeout=30)
 
-        # 1. Validación de código de estado
+        # 1. Status code validation
         assert (
             response.status_code == 200
-        ), f"Error en {trail_name}: status {response.status_code}"
+        ), f"Error in {trail_name}: status {response.status_code}"
 
-        # 2. Validación de SLA de tiempo de respuesta (< 2 segundos)
+        # 2. Response time SLA validation (< 2 seconds)
         assert (
             response.elapsed.total_seconds() < MAX_RESPONSE_TIME_SECONDS
-        ), f"{trail_name} tardó más de {MAX_RESPONSE_TIME_SECONDS}s: {response.elapsed.total_seconds()}s"
+        ), f"{trail_name} took more than {MAX_RESPONSE_TIME_SECONDS}s: {response.elapsed.total_seconds()}s"
 
-        # 3. Validación de estructura JSON
+        # 3. JSON structure validation
         data = response.json()
-        assert "current" in data, f"No se encontró el objeto 'current' en {trail_name}"
+        assert "current" in data, f"'current' object not found in {trail_name}"
         assert (
             "temperature_2m" in data["current"]
-        ), f"Falta 'temperature_2m' en {trail_name}"
+        ), f"Missing 'temperature_2m' in {trail_name}"
         assert isinstance(data["current"]["temperature_2m"], (int, float))
 
     @pytest.mark.parametrize(
@@ -57,7 +57,7 @@ class TestPanamaTrailsWeatherAndElevation:
                 -79.9961,
                 750,
                 950,
-                marks=pytest.mark.posible_bug,
+                marks=pytest.mark.possible_bug,
             ),
             pytest.param(
                 "La India Dormida (El Valle de Antón)",
@@ -65,14 +65,14 @@ class TestPanamaTrailsWeatherAndElevation:
                 -80.1432,
                 700,
                 900,
-                marks=pytest.mark.posible_bug,
+                marks=pytest.mark.possible_bug,
             ),
         ],
     )
     def test_elevation_happy_path(
         self, base_elevation_url, trail_name, lat, lon, min_elev, max_elev
     ):
-        """Verifica que el endpoint de elevación devuelva la altitud esperada."""
+        """Verifies that the elevation endpoint returns the expected altitude."""
         params = {"latitude": lat, "longitude": lon}
 
         response = requests.get(base_elevation_url, params=params, timeout=30)
@@ -83,7 +83,7 @@ class TestPanamaTrailsWeatherAndElevation:
         data = response.json()
         assert (
             "elevation" in data
-        ), "No se encontró el campo 'elevation' en la respuesta"
+        ), "The 'elevation' field was not found in the response"
 
         elevation_val = (
             data["elevation"][0]
@@ -92,42 +92,42 @@ class TestPanamaTrailsWeatherAndElevation:
         )
         assert (
             min_elev <= elevation_val <= max_elev
-        ), f"Elevación inesperada en {trail_name}: {elevation_val} msnm (esperado entre {min_elev} y {max_elev})"
+        ), f"Unexpected elevation in {trail_name}: {elevation_val} masl (expected between {min_elev} and {max_elev})"
 
     # -------------------------------------------------------------------------
-    # 2. PRUEBAS NEGATIVAS Y RESILIENCIA
+    # 2. NEGATIVE AND RESILIENCE TESTS
     # -------------------------------------------------------------------------
 
     @pytest.mark.parametrize(
         "invalid_lat,invalid_lon,scenario",
         [
-            (999.0, -82.5422, "Latitud fuera de rango global (>90)"),
-            (-95.0, -80.0, "Latitud fuera de rango inferior (<-90)"),
-            (8.8080, 250.0, "Longitud fuera de rango superior (>180)"),
-            ("panama_city", -79.5, "Tipo de dato inválido (string en lugar de float)"),
+            (999.0, -82.5422, "Latitude out of global range (>90)"),
+            (-95.0, -80.0, "Latitude out of lower range (<-90)"),
+            (8.8080, 250.0, "Longitude out of upper range (>180)"),
+            ("panama_city", -79.5, "Invalid data type (string instead of float)"),
         ],
     )
     def test_weather_negative_bad_request(
         self, base_weather_url, invalid_lat, invalid_lon, scenario
     ):
-        """Verifica que la API retorne HTTP 400 Bad Request ante parámetros no válidos."""
+        """Verifies that the API returns HTTP 400 Bad Request for invalid parameters."""
         params = {"latitude": invalid_lat, "longitude": invalid_lon}
 
         response = requests.get(base_weather_url, params=params, timeout=30)
 
         assert (
             response.status_code == 400
-        ), f"Esperado 400 para '{scenario}', pero se recibió {response.status_code}"
+        ), f"Expected 400 for '{scenario}', but received {response.status_code}"
         data = response.json()
         assert (
             data.get("error") is True
-        ), f"Se esperaba error=True en el cuerpo para '{scenario}'"
+        ), f"Expected error=True in the body for '{scenario}'"
         assert (
             "reason" in data
-        ), "Se esperaba el campo 'reason' con el detalle del error"
+        ), "Expected the 'reason' field with the error detail"
 
     def test_resilience_missing_mandatory_params(self, base_weather_url):
-        """Verifica que omitir un parámetro mandatorio (ej. latitud sin longitud) retorne HTTP 400 Bad Request."""
+        """Verifies that omitting a mandatory parameter (e.g. latitude without longitude) returns HTTP 400 Bad Request."""
         params = {"latitude": 8.8080}
         response = requests.get(base_weather_url, params=params, timeout=30)
         assert response.status_code == 400
@@ -136,16 +136,16 @@ class TestPanamaTrailsWeatherAndElevation:
         assert "reason" in data
 
     def test_resilience_conditional_headers_not_supported(self, base_weather_url):
-        """Aclaratoria HTTP 412: Open-Meteo es una API pública de solo lectura que no implementa
-        encabezados condicionales (If-Match / If-Unmodified-Since). Responde HTTP 200 ignorando
-        la precondición en lugar de generar HTTP 412 Precondition Failed.
+        """Clarification on HTTP 412: Open-Meteo is a public read-only API that does not implement
+        conditional headers (If-Match / If-Unmodified-Since). It responds HTTP 200, ignoring
+        the precondition instead of returning HTTP 412 Precondition Failed.
         """
         params = {
             "latitude": 8.8080,
             "longitude": -82.5422,
             "current": "temperature_2m",
         }
-        headers = {"If-Match": '"etag-inexistente-123"'}
+        headers = {"If-Match": '"nonexistent-etag-123"'}
         response = requests.get(
             base_weather_url, params=params, headers=headers, timeout=30
         )
